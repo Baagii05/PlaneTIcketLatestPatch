@@ -1,0 +1,202 @@
+﻿@page "/departures"
+@inject FlightDataService FlightData
+@inject FlightSignalRService SignalRService
+@using ModelAndDto.Dtos
+@using ModelAndDto.Models
+@using FlightDashboardWeb.Services
+@using FlightDashboardWeb.Models
+@implements IAsyncDisposable
+
+<h1 style="background-color:#1066c2;color:white;padding:1rem;">
+    Departures
+    <span style="font-size:0.8rem;margin-left:1rem;">
+        SignalR: <span style="color:@GetConnectionStatusColor()">@SignalRService.ConnectionStatus</span>
+    </span>
+</h1>
+
+<div style="background:#f8f9fa;padding:2rem;">
+    <table style="width:100%;border-radius:8px;background:#eef0fa;">
+        <thead>
+            <tr style="color:#929292;font-weight:500;">
+                <th style="padding:0.5rem;">Flight</th>
+                <th style="padding:0.5rem;">Departure</th>
+                <th style="padding:0.5rem;">Arrival</th>
+                <th style="padding:0.5rem;">Status</th>
+                <th style="padding:0.5rem;">Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (error != null)
+            {
+                <tr>
+                    <td colspan="5" style="color:red;text-align:center;">@error</td>
+                </tr>
+            }
+            else if (flights == null)
+            {
+                <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+            }
+            else if (!flights.Any())
+            {
+                <tr><td colspan="5" style="text-align:center;">No departures found.</td></tr>
+            }
+            else
+            {
+                @foreach (var flight in flights)
+                {
+                    <tr style="background:@GetRowBackground(flight.FlightId);">
+                        <td style="padding:0.5rem;">@flight.FlightNumber</td>
+                        <td style="padding:0.5rem;">@flight.DepartureLocation</td>
+                        <td style="padding:0.5rem;">@flight.ArrivalLocation</td>
+                        <td style="padding:0.5rem;">
+                            <span style="@GetStatusStyle(flight.Status)">@flight.Status</span>
+                        </td>
+                        <td style="padding:0.5rem;">@GetLastUpdated(flight.FlightId)</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (recentUpdates.Any())
+{
+    <div style="margin-top:1rem;padding:1rem;background:#e8f5e8;border-radius:8px;">
+        <h4>🔄 Real-time Updates from WinForms</h4>
+        @foreach (var update in recentUpdates.TakeLast(5).Reverse())
+        {
+            <div style="margin:0.5rem 0;font-size:0.9rem;">
+                ✈️ Flight @update.FlightId changed to <strong>@update.NewStatus</strong> at @update.Timestamp.ToString("HH:mm:ss")
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<FlightInfo>? flights;
+    private string? error;
+    private List<FlightUpdateInfo> recentUpdates = new();
+    private Dictionary<int, DateTime> lastUpdatedTimes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Subscribe to SignalR events
+        SignalRService.FlightStatusChanged += OnFlightStatusChanged;
+        SignalRService.ConnectionStatusChanged += OnConnectionStatusChanged;
+
+        // Start SignalR and load initial data
+        await SignalRService.StartAsync();
+        await LoadFlights();
+    }
+
+    /// <summary>
+    /// Load flights from REST API
+    /// </summary>
+    private async Task LoadFlights()
+    {
+        try
+        {
+            flights = await FlightData.GetAllFlightsAsync();
+            error = null;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    /// <summary>
+    /// Handle real-time flight status updates
+    /// </summary>
+    private async void OnFlightStatusChanged(int flightId, FlightStatus newStatus)
+    {
+        await InvokeAsync(async () =>
+        {
+            // Add to recent updates
+            recentUpdates.Add(new FlightUpdateInfo
+            {
+                FlightId = flightId,
+                NewStatus = newStatus,
+                Timestamp = DateTime.Now
+            });
+
+            // Mark as recently updated
+            lastUpdatedTimes[flightId] = DateTime.Now;
+
+            // Refresh flight data
+            await LoadFlights();
+
+            // Update UI
+            StateHasChanged();
+        });
+    }
+
+    /// <summary>
+    /// Handle connection status changes
+    /// </summary>
+    private void OnConnectionStatusChanged(string status)
+    {
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    private string GetConnectionStatusColor()
+    {
+        return SignalRService.ConnectionStatus switch
+        {
+            "Connected" or "Reconnected" => "#28a745",
+            "Reconnecting..." => "#ffc107",
+            _ => "#dc3545"
+        };
+    }
+
+    private string GetRowBackground(int flightId)
+    {
+        if (lastUpdatedTimes.ContainsKey(flightId) &&
+            DateTime.Now - lastUpdatedTimes[flightId] < TimeSpan.FromSeconds(5))
+        {
+            return "#c8e6c9"; // Light green for recently updated flights
+        }
+        return "#e6e8ee"; // Default background
+    }
+
+    private string GetStatusStyle(FlightStatus status)
+    {
+        var color = status switch
+        {
+            FlightStatus.Registering => "#2196f3",
+            FlightStatus.Boarding => "#ff9800",
+            FlightStatus.Departed => "#4caf50",
+            FlightStatus.Delayed => "#f44336",
+            FlightStatus.Cancelled => "#9e9e9e",
+            _ => "#000"
+        };
+
+        return $"color:{color};font-weight:bold;";
+    }
+
+    private string GetLastUpdated(int flightId)
+    {
+        if (lastUpdatedTimes.TryGetValue(flightId, out var time))
+        {
+            var elapsed = DateTime.Now - time;
+            if (elapsed.TotalSeconds < 10)
+                return "Just now";
+            if (elapsed.TotalSeconds < 60)
+                return $"{(int)elapsed.TotalSeconds}s ago";
+            if (elapsed.TotalMinutes < 60)
+                return $"{(int)elapsed.TotalMinutes}m ago";
+            return time.ToString("HH:mm");
+        }
+        return "-";
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // Unsubscribe from events
+        SignalRService.FlightStatusChanged -= OnFlightStatusChanged;
+        SignalRService.ConnectionStatusChanged -= OnConnectionStatusChanged;
+
+        // Note: Don't dispose SignalRService here since it's a singleton
+        // It will be disposed when the app shuts down
+    }
+}
