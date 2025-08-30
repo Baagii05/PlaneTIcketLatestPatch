@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using ModelAndDto.Models;
 
@@ -10,16 +7,19 @@ namespace DataAccess.Repositories
 {
     public class PassengerRepository
     {
-        private readonly string _connectionString = "Data Source=flights.db";
+        private readonly SqliteConnection _connection;
+
+        public PassengerRepository(SqliteConnection connection)
+        {
+            _connection = connection;
+        }
 
         public IEnumerable<Passenger> GetAll()
         {
             var passengers = new List<Passenger>();
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = "SELECT ID, FLIGHT_ID, NAME, SEAT_ID, SEAT_NUMBER, PASSPORT_NUMBER FROM Passenger;";
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
@@ -52,9 +52,7 @@ namespace DataAccess.Repositories
         {
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = "SELECT ID, FLIGHT_ID, NAME, SEAT_ID, SEAT_NUMBER, PASSPORT_NUMBER FROM Passenger WHERE ID = $id;";
                 cmd.Parameters.AddWithValue("$id", id);
                 using var reader = cmd.ExecuteReader();
@@ -88,9 +86,7 @@ namespace DataAccess.Repositories
         {
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = @"INSERT INTO Passenger (FLIGHT_ID, NAME, SEAT_ID, SEAT_NUMBER, PASSPORT_NUMBER)
                                     VALUES ($flightId, $name, $seatId, $seatNumber, $passportNumber);";
                 cmd.Parameters.AddWithValue("$flightId", passenger.FlightId);
@@ -116,9 +112,7 @@ namespace DataAccess.Repositories
         {
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = @"UPDATE Passenger SET FLIGHT_ID = $flightId, NAME = $name, SEAT_ID = $seatId, SEAT_NUMBER = $seatNumber, PASSPORT_NUMBER = $passportNumber
                                     WHERE ID = $id;";
                 cmd.Parameters.AddWithValue("$id", passenger.Id);
@@ -145,9 +139,7 @@ namespace DataAccess.Repositories
         {
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = "DELETE FROM Passenger WHERE ID = $id;";
                 cmd.Parameters.AddWithValue("$id", id);
                 cmd.ExecuteNonQuery();
@@ -168,9 +160,7 @@ namespace DataAccess.Repositories
         {
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = "SELECT ID, FLIGHT_ID, NAME, SEAT_ID, SEAT_NUMBER, PASSPORT_NUMBER FROM Passenger WHERE PASSPORT_NUMBER = $passportNumber;";
                 cmd.Parameters.AddWithValue("$passportNumber", passportNumber);
                 using var reader = cmd.ExecuteReader();

@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace DataAccess.SetUp
 {
-    public class DatabaseInitializer
+    public static class DatabaseInitializer
     {
-
-        public static void EnsureDatabaseCreated()
+        /// <summary>
+        /// Ensures the database schema and seed data are created using the provided connection.
+        /// </summary>
+        public static void EnsureDatabaseCreated(SqliteConnection connection)
         {
             try
             {
-                using var connection = new SqliteConnection("Data Source=flights.db");
-                connection.Open();
+                // Do NOT open/close the connection here; DI or caller manages it
 
                 var createFlightsTableCmd = connection.CreateCommand();
                 createFlightsTableCmd.CommandText =
@@ -53,14 +50,14 @@ namespace DataAccess.SetUp
                     );";
                 createPassengersTableCmd.ExecuteNonQuery();
 
-                //seeding initial data if tables are empty
+                // Seed initial data if tables are empty
                 var checkCmd = connection.CreateCommand();
                 checkCmd.CommandText = "SELECT COUNT(*) FROM Flight;";
-                var fligthCount = (long)checkCmd.ExecuteScalar();
+                var flightCount = (long)checkCmd.ExecuteScalar();
 
-                if (fligthCount == 0)
+                if (flightCount == 0)
                 {
-                    //seeding flights
+                    // Seed flights
                     var seedFlightsCmd = connection.CreateCommand();
                     seedFlightsCmd.CommandText =
                         @"INSERT INTO Flight (FLIGHT_NUMBER, STATUS, DEPARTURE_AIRPORT, ARRIVAL_AIRPORT) VALUES
@@ -69,7 +66,7 @@ namespace DataAccess.SetUp
                         ('UA303', 'Cancelled', 'SFO', 'SEA');";
                     seedFlightsCmd.ExecuteNonQuery();
 
-                    //seed seats
+                    // Seed seats
                     for (int flightId = 1; flightId <= 3; flightId++)
                     {
                         for (int seatNumber = 1; seatNumber <= 20; seatNumber++)
@@ -84,7 +81,7 @@ namespace DataAccess.SetUp
                         }
                     }
 
-                    //seed passengers
+                    // Seed passengers
                     var seedPassengersCmd = connection.CreateCommand();
                     seedPassengersCmd.CommandText =
                         @"INSERT INTO Passenger (FLIGHT_ID, NAME, SEAT_ID, SEAT_NUMBER, PASSPORT_NUMBER) VALUES
@@ -105,6 +102,5 @@ namespace DataAccess.SetUp
                 throw;
             }
         }
-
     }
 }

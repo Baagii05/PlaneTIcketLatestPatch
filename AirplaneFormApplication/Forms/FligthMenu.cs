@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using ModelAndDto.Models;
-using AirplaneFormApplication.apiClient;
-using AirplaneFormApplication.StateMachine;
+﻿using AirplaneFormApplication.apiClient;
 using AirplaneFormApplication.Forms;
+using AirplaneFormApplication.StateMachine;
+using ModelAndDto.Models;
 
 namespace AirplaneFormApplication
 {
@@ -157,9 +152,9 @@ namespace AirplaneFormApplication
             _selectedFlight = flight;
             FlightNumberPanel.Text = flight.FlightNumber;
 
-            // Get valid transitions and include current status
+
             var validStatuses = FlightStatusStateMachine.GetTransitions(flight.Status)
-                .Prepend(flight.Status) // Add current status at the beginning
+                .Prepend(flight.Status)
                 .Distinct()
                 .ToArray();
 
@@ -222,7 +217,7 @@ namespace AirplaneFormApplication
         /// <summary>
         /// Unsubscribe from global events when form closes
         /// </summary>
-        // Your FlightMenu already has the OnFormClosing pattern - just ensure it's consistent
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)
@@ -259,7 +254,7 @@ namespace AirplaneFormApplication
 
             if (!e.Cancel)
             {
-                // ✅ Unsubscribe from global events
+
                 MainMenu.GlobalFlightStatusChanged -= OnGlobalFlightStatusChanged;
                 MainMenu.GlobalConnectionStatusChanged -= OnGlobalConnectionStatusChanged;
                 base.OnFormClosing(e);

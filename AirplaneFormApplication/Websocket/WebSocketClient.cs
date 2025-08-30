@@ -23,7 +23,7 @@ namespace AirplaneFormApplication.WebSocket
         public event Action<int, string> PassengerSelectionChanged;
         public event Action<int, int, string> SeatSelectionChanged;
         public event Action<int> PassengerListRefreshRequested;
-        public event Action<int> SeatStatesRequested; // ✅ New event for state requests
+        public event Action<int> SeatStatesRequested; // ✅ New event for state requestsa
 
         public bool IsConnected => _isConnected && _clientSocket != null && _clientSocket.Connected && !_disposed;
 

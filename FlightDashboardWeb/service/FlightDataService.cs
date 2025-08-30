@@ -20,9 +20,9 @@ namespace FlightDashboardWeb.Services
         {
             try
             {
-                Console.WriteLine("🔄 Loading flights from REST API...");
+                Console.WriteLine("Loading flights from REST API...");
                 var flights = await _httpClient.GetFromJsonAsync<List<FlightInfo>>($"{BaseUrl}/flight");
-                Console.WriteLine($"✅ Loaded {flights?.Count ?? 0} flights");
+                Console.WriteLine($"Loaded {flights?.Count ?? 0} flights");
                 return flights ?? new List<FlightInfo>();
             }
             catch (Exception ex)
@@ -43,7 +43,7 @@ namespace FlightDashboardWeb.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error loading flight {flightId}: {ex.Message}");
+                Console.WriteLine($"Error loading flight {flightId}: {ex.Message}");
                 return null;
             }
         }

@@ -37,7 +37,7 @@ namespace AirplaneFormApplication.Forms
                 FlightNumber = flightNumberTextBox.Text.Trim(),
                 DepartureLocation = departureTextBox.Text.Trim(),
                 ArrivalLocation = arrivalTextBox.Text.Trim(),
-                Status = FlightStatus.Registering // default
+                Status = FlightStatus.Registering 
             };
             DialogResult = DialogResult.OK;
             Close();

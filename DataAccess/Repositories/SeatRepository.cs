@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using ModelAndDto.Models;
 
@@ -10,16 +7,19 @@ namespace DataAccess.Repositories
 {
     public class SeatRepository
     {
-        private readonly string _connectionString = "Data Source=flights.db";
+        private readonly SqliteConnection _connection;
+
+        public SeatRepository(SqliteConnection connection)
+        {
+            _connection = connection;
+        }
 
         public IEnumerable<Seat> GetAll()
         {
             var seats = new List<Seat>();
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = "SELECT ID, FLIGHT_ID, SEAT_NUMBER, IS_AVAILABLE FROM Seat;";
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
@@ -50,9 +50,7 @@ namespace DataAccess.Repositories
         {
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = "SELECT ID, FLIGHT_ID, SEAT_NUMBER, IS_AVAILABLE FROM Seat WHERE ID = $id;";
                 cmd.Parameters.AddWithValue("$id", id);
                 using var reader = cmd.ExecuteReader();
@@ -84,9 +82,7 @@ namespace DataAccess.Repositories
         {
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = @"INSERT INTO Seat (FLIGHT_ID, SEAT_NUMBER, IS_AVAILABLE)
                                     VALUES ($flightId, $seatNumber, $isAvailable);";
                 cmd.Parameters.AddWithValue("$flightId", seat.FlightId);
@@ -110,9 +106,7 @@ namespace DataAccess.Repositories
         {
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = @"UPDATE Seat SET FLIGHT_ID = $flightId, SEAT_NUMBER = $seatNumber, IS_AVAILABLE = $isAvailable
                                     WHERE ID = $id;";
                 cmd.Parameters.AddWithValue("$id", seat.Id);
@@ -137,9 +131,7 @@ namespace DataAccess.Repositories
         {
             try
             {
-                using var connection = new SqliteConnection(_connectionString);
-                connection.Open();
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = "DELETE FROM Seat WHERE ID = $id;";
                 cmd.Parameters.AddWithValue("$id", id);
                 cmd.ExecuteNonQuery();

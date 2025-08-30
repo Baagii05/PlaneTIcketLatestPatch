@@ -57,6 +57,8 @@ namespace AirplaneFormApplication.apiClient
             response.EnsureSuccessStatusCode();
         }
 
+
+        //seat api
         public async Task<List<Seat>> GetAllSeatsAsync()
         {
             return await _http.GetFromJsonAsync<List<Seat>>($"{BaseUrl}/Seat");

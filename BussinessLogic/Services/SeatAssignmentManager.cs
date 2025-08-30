@@ -81,7 +81,7 @@ namespace BussinessLogic.Services
             {
                 var seats = _seatService.GetAllSeats();
                 var seat = seats.FirstOrDefault(s => s.FlightId == flightId && s.SeatNumber == seatNumber);
-                return seat != null && !seat.IsAvailable;
+                return seat != null && seat.IsAvailable;
             }
             catch (Exception ex)
             {

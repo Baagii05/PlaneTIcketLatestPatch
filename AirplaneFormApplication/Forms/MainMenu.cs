@@ -145,12 +145,12 @@ namespace AirplaneFormApplication
 
         private void roundedButton1_Click(object sender, EventArgs e)
         {
-            // You can implement main menu functionality here
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            // You can implement main menu functionality here
+            
         }
 
         /// <summary>
@@ -162,11 +162,11 @@ namespace AirplaneFormApplication
         /// Handle application exit
         /// </summary>
         /// <summary>
-        /// ✅ Handle form closing - DIFFERENT from other forms since this is the main form
+        /// Handle form closing - DIFFERENT from other forms since this is the main form
         /// </summary>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            // For MainMenu, we want to confirm exit since it closes the entire application
+            
             if (e.CloseReason == CloseReason.UserClosing)
             {
                 var result = MessageBox.Show(
@@ -182,7 +182,7 @@ namespace AirplaneFormApplication
                     return;
                 }
 
-                // If user confirms exit, close all other forms first
+                
                 CloseAllSubForms();
             }
 
@@ -195,7 +195,7 @@ namespace AirplaneFormApplication
         }
 
         /// <summary>
-        /// ✅ Close all sub-forms when main menu is closing
+        /// Close all sub-forms when main menu is closing
         /// </summary>
         private void CloseAllSubForms()
         {
@@ -206,7 +206,7 @@ namespace AirplaneFormApplication
                     .Where(f => f != this && f.GetType() != typeof(MainMenu))
                     .ToList();
 
-                // Close all sub-forms programmatically (this won't trigger user closing dialogs)
+                // Close all sub-forms programmatically 
                 foreach (var form in formsToClose)
                 {
                     try
@@ -226,7 +226,7 @@ namespace AirplaneFormApplication
         }
 
         /// <summary>
-        /// ✅ Clean up the shared WebSocket client
+        /// Clean up the shared WebSocket client
         /// </summary>
         private void CleanupSharedWebSocket()
         {
@@ -239,7 +239,7 @@ namespace AirplaneFormApplication
                     SharedWebSocketClient.ConnectionStatusChanged -= OnConnectionStatusChanged;
 
                     // Disconnect and dispose
-                    SharedWebSocketClient.DisconnectAsync().Wait(2000); // Wait max 2 seconds
+                    SharedWebSocketClient.DisconnectAsync().Wait(2000);
                     SharedWebSocketClient.Dispose();
                     SharedWebSocketClient = null;
 
@@ -261,7 +261,7 @@ namespace AirplaneFormApplication
         /// </summary>
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            CleanupSharedWebSocket(); // Double cleanup safety
+            CleanupSharedWebSocket(); 
             base.OnFormClosed(e);
         }
     }

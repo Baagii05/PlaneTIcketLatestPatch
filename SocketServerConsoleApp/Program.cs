@@ -6,14 +6,14 @@ namespace SocketServerConsoleApp
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("🚀 WebSocket Server эхлүүлж байна...");
+            Console.WriteLine("WebSocket Server эхлүүлж байна...");
 
             var server = WebSocketServer.Instance;
             server.Start();
 
-            Console.WriteLine("✅ WebSocket Server ажиллаж байна.");
-            Console.WriteLine("📡 WinForms клиентүүд холбогдох боломжтой");
-            Console.WriteLine("🔄 SignalR-рүү мэдэгдэл илгээх боломжтой");
+            Console.WriteLine("WebSocket Server ажиллаж байна.");
+            Console.WriteLine("WinForms клиентүүд холбогдох боломжтой");
+            Console.WriteLine("SignalR-рүү мэдэгдэл илгээх боломжтой");
             Console.WriteLine("Зогсоохын тулд 'q' дарна уу.");
 
             while (true)
@@ -25,9 +25,9 @@ namespace SocketServerConsoleApp
                 }
             }
 
-            Console.WriteLine("🛑 WebSocket Server зогсож байна...");
+            Console.WriteLine("WebSocket Server зогсож байна...");
             server.Stop();
-            Console.WriteLine("✅ WebSocket Server зогслоо.");
+            Console.WriteLine("WebSocket Server зогслоо.");
         }
     }
 }

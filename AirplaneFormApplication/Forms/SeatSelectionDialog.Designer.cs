@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             SeatsContainerLayout = new FlowLayoutPanel();
-            ConfirmBtn = new AirplaneFormApplication.CustomControls.RoundedButton();
             SeatBtn = new AirplaneFormApplication.CustomControls.RoundedButton();
+            ConfirmBtn = new AirplaneFormApplication.CustomControls.RoundedButton();
             SeatsContainerLayout.SuspendLayout();
             SuspendLayout();
             // 
@@ -39,28 +39,8 @@
             SeatsContainerLayout.Controls.Add(SeatBtn);
             SeatsContainerLayout.Location = new Point(2, 1);
             SeatsContainerLayout.Name = "SeatsContainerLayout";
-            SeatsContainerLayout.Size = new Size(280, 260);
+            SeatsContainerLayout.Size = new Size(293, 260);
             SeatsContainerLayout.TabIndex = 0;
-            // 
-            // ConfirmBtn
-            // 
-            ConfirmBtn.BackColor = Color.MediumSlateBlue;
-            ConfirmBtn.BackgroundColor = Color.MediumSlateBlue;
-            ConfirmBtn.BorderColor = Color.PaleVioletRed;
-            ConfirmBtn.BorderRadius = 10;
-            ConfirmBtn.BorderSize = 0;
-            ConfirmBtn.ClickColor = Color.SlateBlue;
-            ConfirmBtn.FlatAppearance.BorderSize = 0;
-            ConfirmBtn.FlatStyle = FlatStyle.Flat;
-            ConfirmBtn.ForeColor = Color.White;
-            ConfirmBtn.HoverColor = Color.DarkSlateBlue;
-            ConfirmBtn.Location = new Point(61, 272);
-            ConfirmBtn.Name = "ConfirmBtn";
-            ConfirmBtn.Size = new Size(162, 50);
-            ConfirmBtn.TabIndex = 1;
-            ConfirmBtn.Text = "Confirm";
-            ConfirmBtn.TextColor = Color.White;
-            ConfirmBtn.UseVisualStyleBackColor = false;
             // 
             // SeatBtn
             // 
@@ -82,11 +62,31 @@
             SeatBtn.TextColor = Color.White;
             SeatBtn.UseVisualStyleBackColor = false;
             // 
+            // ConfirmBtn
+            // 
+            ConfirmBtn.BackColor = Color.MediumSlateBlue;
+            ConfirmBtn.BackgroundColor = Color.MediumSlateBlue;
+            ConfirmBtn.BorderColor = Color.PaleVioletRed;
+            ConfirmBtn.BorderRadius = 10;
+            ConfirmBtn.BorderSize = 0;
+            ConfirmBtn.ClickColor = Color.SlateBlue;
+            ConfirmBtn.FlatAppearance.BorderSize = 0;
+            ConfirmBtn.FlatStyle = FlatStyle.Flat;
+            ConfirmBtn.ForeColor = Color.White;
+            ConfirmBtn.HoverColor = Color.DarkSlateBlue;
+            ConfirmBtn.Location = new Point(61, 272);
+            ConfirmBtn.Name = "ConfirmBtn";
+            ConfirmBtn.Size = new Size(162, 50);
+            ConfirmBtn.TabIndex = 1;
+            ConfirmBtn.Text = "Confirm";
+            ConfirmBtn.TextColor = Color.White;
+            ConfirmBtn.UseVisualStyleBackColor = false;
+            // 
             // SeatSelectionDialog
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(284, 334);
+            ClientSize = new Size(296, 334);
             Controls.Add(ConfirmBtn);
             Controls.Add(SeatsContainerLayout);
             Name = "SeatSelectionDialog";

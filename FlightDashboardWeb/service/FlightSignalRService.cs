@@ -22,7 +22,7 @@ namespace FlightDashboardWeb.Services
         {
             if (_hubConnection != null)
             {
-                return; // Already started
+                return; 
             }
 
             _hubConnection = new HubConnectionBuilder()
@@ -34,7 +34,7 @@ namespace FlightDashboardWeb.Services
             _hubConnection.On<int, int>("FlightStatusChanged", (flightId, statusInt) =>
             {
                 var newStatus = (FlightStatus)statusInt;
-                Console.WriteLine($"🔔 SignalR: Flight {flightId} → {newStatus}");
+                Console.WriteLine($"SignalR: Flight {flightId} → {newStatus}");
                 FlightStatusChanged?.Invoke(flightId, newStatus);
             });
 
@@ -42,7 +42,7 @@ namespace FlightDashboardWeb.Services
             _hubConnection.On<string>("Connected", (message) =>
             {
                 UpdateConnectionStatus("Connected");
-                Console.WriteLine($"✅ SignalR: {message}");
+                Console.WriteLine($"SignalR: {message}");
             });
 
             _hubConnection.Reconnecting += (exception) =>

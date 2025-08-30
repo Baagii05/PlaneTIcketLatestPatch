@@ -27,17 +27,17 @@ namespace AirplaneFormApplication.Forms
             if (webSocketClient?.IsConnected == true)
             {
                 webSocketClient.SeatSelectionChanged += OnSeatSelectionChanged;
-                webSocketClient.SeatStatesRequested += OnSeatStatesRequested; // ✅ New subscription
+                webSocketClient.SeatStatesRequested += OnSeatStatesRequested; 
             }
 
             PopulateSeats(seats);
             ConfirmBtn.Click += ConfirmBtn_Click;
 
-            // ✅ Request current states from other clients
+            
             _ = RequestCurrentStatesFromOtherClients();
         }
 
-        // ✅ Request current states from other clients
+        
         private async Task RequestCurrentStatesFromOtherClients()
         {
             try
@@ -53,12 +53,12 @@ namespace AirplaneFormApplication.Forms
             }
         }
 
-        // ✅ Handle when other clients request states - send our current selection if we have one
+        
         private void OnSeatStatesRequested(int requestedFlightId)
         {
             if (requestedFlightId != flightId) return;
 
-            // If we have a selected seat, re-broadcast it
+            
             if (SelectedSeat != null)
             {
                 _ = SendSeatNotificationSafe(SelectedSeat.SeatNumber, "selected");
@@ -69,7 +69,7 @@ namespace AirplaneFormApplication.Forms
         {
             if (receivedFlightId != flightId) return;
 
-            // Update UI on main thread
+            
             if (InvokeRequired)
             {
                 Invoke(new Action(() => UpdateSeatColor(seatNumber, status)));
@@ -131,7 +131,7 @@ namespace AirplaneFormApplication.Forms
                     UseVisualStyleBackColor = false
                 };
 
-                // Set initial colors based on availability
+                
                 if (seat.IsAvailable)
                 {
                     seatButton.BackColor = Color.MediumSlateBlue;
@@ -151,7 +151,7 @@ namespace AirplaneFormApplication.Forms
                 // Click event for seat selection (only for available seats)
                 if (seat.IsAvailable)
                 {
-                    seatButton.Click += (s, e) => SelectSeat(seatButton, seat); // ✅ Remove async/await from event handler
+                    seatButton.Click += (s, e) => SelectSeat(seatButton, seat); 
                 }
 
                 seatButtons[seat.SeatNumber] = seatButton;
@@ -183,7 +183,7 @@ namespace AirplaneFormApplication.Forms
             _ = SendSeatNotificationSafe(seat.SeatNumber, "selected");
         }
 
-        // ✅ Helper method for safe WebSocket calls
+        
         private async Task SendSeatNotificationSafe(int seatNumber, string status)
         {
             try
@@ -196,7 +196,7 @@ namespace AirplaneFormApplication.Forms
             catch (Exception ex)
             {
                 Console.WriteLine($"WebSocket notification failed: {ex.Message}");
-                // Don't let WebSocket errors crash the UI
+                
             }
         }
 
@@ -208,21 +208,23 @@ namespace AirplaneFormApplication.Forms
                 return;
             }
 
-            // Disable the confirm button to prevent double-clicks
+            
             ConfirmBtn.Enabled = false;
 
             try
             {
-                // Notify other clients that this seat is confirmed
+                
                 await SendSeatNotificationSafe(SelectedSeat.SeatNumber, "confirmed");
 
                 DialogResult = DialogResult.OK;
+
+
                 Close();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error confirming seat: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                ConfirmBtn.Enabled = true; // Re-enable on error
+                ConfirmBtn.Enabled = true; 
             }
         }
 
@@ -230,13 +232,13 @@ namespace AirplaneFormApplication.Forms
         {
             try
             {
-                // Unsubscribe from events
+                
                 if (webSocketClient != null)
                 {
                     webSocketClient.SeatSelectionChanged -= OnSeatSelectionChanged;
-                    webSocketClient.SeatStatesRequested -= OnSeatStatesRequested; // ✅ Unsubscribe
+                    webSocketClient.SeatStatesRequested -= OnSeatStatesRequested; 
 
-                    // If user selected a seat but didn't confirm, make it available again
+                    
                     if (SelectedSeat != null && DialogResult != DialogResult.OK)
                     {
                         _ = SendSeatNotificationSafe(SelectedSeat.SeatNumber, "available");

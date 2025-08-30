@@ -16,7 +16,7 @@ namespace SocketServerConsoleApp
     /// </summary>
     public class WebSocketServer
     {
-        // Singleton pattern
+        
         private static WebSocketServer _instance;
         private static readonly object _lock = new object();
 
@@ -78,7 +78,7 @@ namespace SocketServerConsoleApp
                 _serverSocket.Listen(100);
 
                 HasStarted = true;
-                Console.WriteLine($"🚀 WebSocket сервер {_port} порт дээр амжилттай эхэллээ");
+                Console.WriteLine($"WebSocket сервер {_port} порт дээр амжилттай эхэллээ");
 
                 Thread acceptThread = new Thread(AcceptConnections);
                 acceptThread.IsBackground = true;
@@ -87,12 +87,12 @@ namespace SocketServerConsoleApp
             }
             catch (SocketException ex) when (ex.ErrorCode == 10048)
             {
-                Console.WriteLine($"❌ Порт {_port} аль хэдийн ашиглагдаж байна.");
+                Console.WriteLine($"Порт {_port} аль хэдийн ашиглагдаж байна.");
                 HasStarted = false;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Сервер эхлүүлэхэд алдаа гарлаа: {ex.Message}");
+                Console.WriteLine($"Сервер эхлүүлэхэд алдаа гарлаа: {ex.Message}");
                 HasStarted = false;
             }
         }
@@ -107,7 +107,7 @@ namespace SocketServerConsoleApp
                     int clientId = Interlocked.Increment(ref _clientIdCounter);
 
                     _connectedSockets.TryAdd(clientId, clientSocket);
-                    Console.WriteLine($"🔗 Шинэ WinForms клиент холбогдлоо: {clientId} (Нийт: {_connectedSockets.Count})");
+                    Console.WriteLine($"Шинэ WinForms клиент холбогдлоо: {clientId} (Нийт: {_connectedSockets.Count})");
 
                     Thread receiveThread = new Thread(() => ReceiveMessages(clientId, clientSocket));
                     receiveThread.IsBackground = true;
@@ -119,7 +119,7 @@ namespace SocketServerConsoleApp
             {
                 if (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    Console.WriteLine($"❌ Холболт хүлээн авахад алдаа гарлаа: {ex.Message}");
+                    Console.WriteLine($"Холболт хүлээн авахад алдаа гарлаа: {ex.Message}");
                 }
             }
         }
@@ -137,7 +137,7 @@ namespace SocketServerConsoleApp
                     if (bytesRead > 0)
                     {
                         string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                        Console.WriteLine($"📨 Мессеж хүлээн авлаа (клиент {clientId}): {message}");
+                        Console.WriteLine($"Мессеж хүлээн авлаа (клиент {clientId}): {message}");
 
                         // Process the message (e.g., flight status update notification)
                         await ProcessClientMessage(clientId, message);
@@ -150,7 +150,7 @@ namespace SocketServerConsoleApp
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Клиент {clientId} холболт салгагдлаа: {ex.Message}");
+                Console.WriteLine($"Клиент {clientId} холболт салгагдлаа: {ex.Message}");
             }
             finally
             {
@@ -209,7 +209,7 @@ namespace SocketServerConsoleApp
                             Console.WriteLine($"❓ State request from client {senderId}: Flight {requestFlightId}");
                             
 
-                            // Forward the request to all other clients so they can respond with their current states
+                            
                             await BroadcastToOtherClients(senderId, "RequestCurrentStates", new
                             {
                                 FlightId = requestFlightId,
@@ -387,11 +387,11 @@ namespace SocketServerConsoleApp
                 _httpClient?.Dispose();
 
                 HasStarted = false;
-                Console.WriteLine("🛑 WebSocket сервер зогслоо");
+                Console.WriteLine("WebSocket сервер зогслоо");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Сервер зогсооход алдаа гарлаа: {ex.Message}");
+                Console.WriteLine($"Сервер зогсооход алдаа гарлаа: {ex.Message}");
             }
         }
 
@@ -408,7 +408,7 @@ namespace SocketServerConsoleApp
         {
             _connectedSockets.TryRemove(clientId, out _);
             CloseSocketSafely(clientSocket);
-            Console.WriteLine($"🧹 Клиент {clientId} холболт цэвэрлэгдлээ (Нийт: {_connectedSockets.Count})");
+            Console.WriteLine($"Клиент {clientId} холболт цэвэрлэгдлээ (Нийт: {_connectedSockets.Count})");
         }
 
         private void CloseSocketSafely(Socket socket)
