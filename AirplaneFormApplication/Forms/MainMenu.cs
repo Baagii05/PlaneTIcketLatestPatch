@@ -14,10 +14,10 @@ namespace AirplaneFormApplication
 {
     public partial class MainMenu : Form
     {
-        // Shared WebSocket client for the entire application
+        
         public static WebSocketClient SharedWebSocketClient { get; private set; }
 
-        // Events that other forms can subscribe to
+        
         public static event Action<int, FlightStatus> GlobalFlightStatusChanged;
         public static event Action<string> GlobalConnectionStatusChanged;
 
@@ -39,11 +39,11 @@ namespace AirplaneFormApplication
                 {
                     SharedWebSocketClient = new WebSocketClient();
 
-                    // Subscribe to WebSocket events and relay them globally
+                    
                     SharedWebSocketClient.FlightStatusChanged += OnFlightStatusChanged;
                     SharedWebSocketClient.ConnectionStatusChanged += OnConnectionStatusChanged;
 
-                    // Connect to WebSocket server
+                    
                     await SharedWebSocketClient.ConnectAsync();
 
                     Console.WriteLine("✅ Shared WebSocket client initialized in MainMenu");
@@ -67,7 +67,7 @@ namespace AirplaneFormApplication
                 return;
             }
 
-            // Broadcast to all forms that are listening
+            
             GlobalFlightStatusChanged?.Invoke(flightId, newStatus);
 
             Console.WriteLine($"🔄 Global flight update broadcast: Flight {flightId} → {newStatus}");
@@ -84,10 +84,10 @@ namespace AirplaneFormApplication
                 return;
             }
 
-            // Broadcast to all forms that are listening
+            
             GlobalConnectionStatusChanged?.Invoke(status);
 
-            // Update main menu display
+            
             UpdateConnectionStatusDisplay();
 
             Console.WriteLine($"🔗 Global connection status: {status}");
@@ -186,7 +186,7 @@ namespace AirplaneFormApplication
                 CloseAllSubForms();
             }
 
-            // Clean up shared WebSocket client
+           
             if (!e.Cancel)
             {
                 CleanupSharedWebSocket();
@@ -201,12 +201,12 @@ namespace AirplaneFormApplication
         {
             try
             {
-                // Get all open forms except this one
+                
                 var formsToClose = Application.OpenForms.Cast<Form>()
                     .Where(f => f != this && f.GetType() != typeof(MainMenu))
                     .ToList();
 
-                // Close all sub-forms programmatically 
+                
                 foreach (var form in formsToClose)
                 {
                     try
@@ -234,11 +234,11 @@ namespace AirplaneFormApplication
             {
                 if (SharedWebSocketClient != null)
                 {
-                    // Unsubscribe from events
+                    
                     SharedWebSocketClient.FlightStatusChanged -= OnFlightStatusChanged;
                     SharedWebSocketClient.ConnectionStatusChanged -= OnConnectionStatusChanged;
 
-                    // Disconnect and dispose
+                    
                     SharedWebSocketClient.DisconnectAsync().Wait(2000);
                     SharedWebSocketClient.Dispose();
                     SharedWebSocketClient = null;
@@ -246,7 +246,7 @@ namespace AirplaneFormApplication
                     Console.WriteLine("✅ Shared WebSocket client cleaned up");
                 }
 
-                // Clear global event handlers
+                
                 GlobalFlightStatusChanged = null;
                 GlobalConnectionStatusChanged = null;
             }

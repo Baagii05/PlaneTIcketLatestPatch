@@ -97,7 +97,7 @@ namespace AirplaneFormApplication
 
         private async void OnPassengerListRefreshRequested(int flightId)
         {
-            // Don't refresh if we're currently assigning a passenger
+            
             if (_isAssigningPassenger) return;
 
             if (InvokeRequired)
@@ -146,7 +146,7 @@ namespace AirplaneFormApplication
         {
             PassengersContainerLayout.Controls.Clear();
 
-            // Only clear panels for passengers that are no longer in the list
+            
             var currentPassengerIds = passengers.Select(p => p.Id).ToHashSet();
             var panelsToRemove = passengerPanels.Keys.Where(id => !currentPassengerIds.Contains(id)).ToList();
             foreach (var id in panelsToRemove)
@@ -188,20 +188,20 @@ namespace AirplaneFormApplication
 
                 passengerPanels[passenger.Id] = container;
 
-                // Apply existing state if available, otherwise default to available
+                
                 if (_passengerStates.TryGetValue(passenger.Id, out var savedState))
                 {
                     ApplyPassengerPanelState(container, savedState);
                 }
                 else if (selectedPassenger != null && selectedPassenger.Id == passenger.Id)
                 {
-                    // This passenger is currently selected by this client
+                    
                     ApplyPassengerPanelState(container, "selected");
                     _passengerStates[passenger.Id] = "selected";
                 }
                 else
                 {
-                    // Default state for new passengers
+                    
                     ApplyPassengerPanelState(container, "available");
                 }
 
@@ -346,7 +346,7 @@ namespace AirplaneFormApplication
 
         private async Task RefreshPassengerList()
         {
-            // Store current selection before refresh
+            
             var previousSelectedPassenger = selectedPassenger;
             var previousSelectedPanel = selectedPassengerPanel;
 
@@ -354,42 +354,42 @@ namespace AirplaneFormApplication
             allPassengers = allPassengersFromApi.Where(p => p.SeatId == null && p.SeatNumber == null).ToList();
             filteredPassengers = allPassengers;
 
-            // Don't clear passenger states during refresh - preserve existing states
+            
             PopulatePassengers(filteredPassengers);
 
-            // Restore selection if the passenger is still in the list
+            
             if (previousSelectedPassenger != null &&
                 allPassengers.Any(p => p.Id == previousSelectedPassenger.Id))
             {
                 selectedPassenger = previousSelectedPassenger;
 
-                // Find the new panel for this passenger
+                
                 if (passengerPanels.TryGetValue(previousSelectedPassenger.Id, out var newPanel))
                 {
                     selectedPassengerPanel = newPanel;
                     newPanel.BackColor = Color.LightGreen;
 
-                    // Restore UI display
+                    
                     NameLbl.Text = previousSelectedPassenger.Name;
                     PasswordNumLbl.Text = previousSelectedPassenger.PassportNumber;
 
-                    // Update the state to ensure it's marked as selected
+                    
                     _passengerStates[previousSelectedPassenger.Id] = "selected";
                 }
             }
             else
             {
-                // Only clear if the passenger is no longer available
+                
                 selectedPassenger = null;
                 selectedPassengerPanel = null;
                 NameLbl.Text = "";
                 PasswordNumLbl.Text = "";
             }
 
-            // Request current states after populating to sync with other clients
+            
             if (webSocketClient?.IsConnected == true)
             {
-                await Task.Delay(100); // Small delay to ensure UI is ready
+                await Task.Delay(100); 
                 await RequestCurrentPassengerStates();
             }
         }
