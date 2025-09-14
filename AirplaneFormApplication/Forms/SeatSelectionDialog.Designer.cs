@@ -39,7 +39,7 @@
             SeatsContainerLayout.Controls.Add(SeatBtn);
             SeatsContainerLayout.Location = new Point(2, 1);
             SeatsContainerLayout.Name = "SeatsContainerLayout";
-            SeatsContainerLayout.Size = new Size(293, 260);
+            SeatsContainerLayout.Size = new Size(327, 260);
             SeatsContainerLayout.TabIndex = 0;
             // 
             // SeatBtn
@@ -86,7 +86,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(296, 334);
+            ClientSize = new Size(333, 334);
             Controls.Add(ConfirmBtn);
             Controls.Add(SeatsContainerLayout);
             Name = "SeatSelectionDialog";

@@ -18,11 +18,11 @@ namespace Tests
         [TestInitialize]
         public void Setup()
         {
-            // Create and open the in-memory SQLite connection
+            
             connection = new SqliteConnection("Data Source=:memory:");
             connection.Open();
 
-            // Create schema for Flight table
+            
             using (var cmd = connection.CreateCommand())
             {
                 cmd.CommandText = @"
@@ -37,7 +37,7 @@ namespace Tests
                 cmd.ExecuteNonQuery();
             }
 
-            // Use the repository and service with the same connection
+            
             var flightRepo = new FlightRepository(connection);
             flightService = new FlightService(flightRepo);
         }
