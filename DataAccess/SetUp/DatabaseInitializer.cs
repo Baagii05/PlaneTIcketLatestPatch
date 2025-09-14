@@ -12,7 +12,7 @@ namespace DataAccess.SetUp
         {
             try
             {
-                // Do NOT open/close the connection here; DI or caller manages it
+                
 
                 var createFlightsTableCmd = connection.CreateCommand();
                 createFlightsTableCmd.CommandText =
@@ -50,14 +50,14 @@ namespace DataAccess.SetUp
                     );";
                 createPassengersTableCmd.ExecuteNonQuery();
 
-                // Seed initial data if tables are empty
+                
                 var checkCmd = connection.CreateCommand();
                 checkCmd.CommandText = "SELECT COUNT(*) FROM Flight;";
                 var flightCount = (long)checkCmd.ExecuteScalar();
 
                 if (flightCount == 0)
                 {
-                    // Seed flights
+                    
                     var seedFlightsCmd = connection.CreateCommand();
                     seedFlightsCmd.CommandText =
                         @"INSERT INTO Flight (FLIGHT_NUMBER, STATUS, DEPARTURE_AIRPORT, ARRIVAL_AIRPORT) VALUES
@@ -66,7 +66,7 @@ namespace DataAccess.SetUp
                         ('UA303', 'Cancelled', 'SFO', 'SEA');";
                     seedFlightsCmd.ExecuteNonQuery();
 
-                    // Seed seats
+                    
                     for (int flightId = 1; flightId <= 3; flightId++)
                     {
                         for (int seatNumber = 1; seatNumber <= 20; seatNumber++)
@@ -81,7 +81,7 @@ namespace DataAccess.SetUp
                         }
                     }
 
-                    // Seed passengers
+                    
                     var seedPassengersCmd = connection.CreateCommand();
                     seedPassengersCmd.CommandText =
                         @"INSERT INTO Passenger (FLIGHT_ID, NAME, SEAT_ID, SEAT_NUMBER, PASSPORT_NUMBER) VALUES

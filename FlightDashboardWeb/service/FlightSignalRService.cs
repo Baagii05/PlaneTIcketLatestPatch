@@ -8,7 +8,7 @@ namespace FlightDashboardWeb.Services
         private HubConnection? _hubConnection;
         private readonly string _hubUrl = "http://localhost:8080/flightHub";
 
-        // Events for components to subscribe to
+
         public event Action<int, FlightStatus>? FlightStatusChanged;
         public event Action<string>? ConnectionStatusChanged;
 

@@ -16,7 +16,7 @@ namespace AirplaneFormApplication
             AddFlightBtn.Click += AddFlightBtn_Click;
             UpdateBtn.Click += UpdateBtn_Click;
 
-            // Subscribe to global WebSocket events from MainMenu
+            
             MainMenu.GlobalFlightStatusChanged += OnGlobalFlightStatusChanged;
             MainMenu.GlobalConnectionStatusChanged += OnGlobalConnectionStatusChanged;
 
@@ -35,10 +35,10 @@ namespace AirplaneFormApplication
                 return;
             }
 
-            // Reload flights to show updated status
+            
             LoadAllFlights();
 
-            // Show notification
+           
             MessageBox.Show($"🔄 Real-time update: Flight {flightId} status changed to {newStatus}!",
                 "Real-time Update", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -184,14 +184,14 @@ namespace AirplaneFormApplication
 
             try
             {
-                // 1. Update via REST API FIRST
+                
                 _selectedFlight.Status = newStatus;
                 await _api.UpdateFlightAsync(_selectedFlight);
 
-                // 2. Send WebSocket notification through shared client
+                
                 await MainMenu.SendFlightUpdateNotificationAsync(_selectedFlight.FlightId, (int)newStatus);
 
-                // Refresh local UI
+                
                 LoadAllFlights();
 
                 MessageBox.Show($"✅ Flight {_selectedFlight.FlightNumber} updated to {newStatus}!",

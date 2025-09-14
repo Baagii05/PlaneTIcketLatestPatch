@@ -115,13 +115,13 @@ namespace BussinessLogic.Services
                 }
                 catch (OperationCanceledException)
                 {
-                    // Normal cancellation, break the loop
+                    
                     break;
                 }
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine($"Error in ProcessQueueAsync main loop: {ex.Message}");
-                    // Continue processing other requests despite errors
+                   
                 }
             }
         }
@@ -147,11 +147,11 @@ namespace BussinessLogic.Services
 
             try
             {
-                // Update seat status
+                
                 seat.IsAvailable = false;
                 _seatService.UpdateSeat(seat);
 
-                // Update passenger seat assignment
+                
                 var passenger = _passengerService.GetPassenger(request.PassengerId);
                 if (passenger != null)
                 {
@@ -162,7 +162,7 @@ namespace BussinessLogic.Services
                 }
                 else
                 {
-                    // Rollback seat status if passenger not found
+                    
                     seat.IsAvailable = true;
                     _seatService.UpdateSeat(seat);
                     request.Callback?.Invoke(false, "Passenger not found.");
@@ -170,7 +170,7 @@ namespace BussinessLogic.Services
             }
             catch (Exception ex)
             {
-                // Attempt rollback on error
+                
                 try
                 {
                     seat.IsAvailable = true;
@@ -180,7 +180,7 @@ namespace BussinessLogic.Services
                 {
                     Console.Error.WriteLine($"Error during rollback: {rollbackEx.Message}");
                 }
-                throw; // Re-throw the original exception
+                throw; 
             }
         }
 

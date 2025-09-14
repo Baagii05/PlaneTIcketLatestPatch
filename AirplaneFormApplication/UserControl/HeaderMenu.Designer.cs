@@ -127,7 +127,7 @@
             BtnMainMenu.Font = new Font("Verdana", 18F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             BtnMainMenu.ForeColor = Color.White;
             BtnMainMenu.HoverColor = SystemColors.MenuHighlight;
-            BtnMainMenu.Location = new Point(21, 15);
+            BtnMainMenu.Location = new Point(21, 11);
             BtnMainMenu.Name = "BtnMainMenu";
             BtnMainMenu.Size = new Size(412, 50);
             BtnMainMenu.TabIndex = 2;

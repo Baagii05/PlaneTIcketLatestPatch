@@ -23,7 +23,7 @@ namespace AirplaneFormApplication.WebSocket
         public event Action<int, string> PassengerSelectionChanged;
         public event Action<int, int, string> SeatSelectionChanged;
         public event Action<int> PassengerListRefreshRequested;
-        public event Action<int> SeatStatesRequested; // ✅ New event for state requestsa
+        public event Action<int> SeatStatesRequested;
 
         public bool IsConnected => _isConnected && _clientSocket != null && _clientSocket.Connected && !_disposed;
 
@@ -42,7 +42,7 @@ namespace AirplaneFormApplication.WebSocket
             {
                 _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 
-                // Set socket options for better cleanup
+                
                 _clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 _clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, new LingerOption(true, 0));
                 
@@ -73,7 +73,7 @@ namespace AirplaneFormApplication.WebSocket
                 {
                     try
                     {
-                        // Check if socket is still valid before receiving
+                        
                         if (_clientSocket == null || !_clientSocket.Connected || _disposed)
                         {
                             Console.WriteLine("🔌 Socket disconnected or disposed, exiting receive loop");
@@ -95,7 +95,7 @@ namespace AirplaneFormApplication.WebSocket
                     }
                     catch (SocketException socketEx) when (socketEx.SocketErrorCode == SocketError.ConnectionAborted)
                     {
-                        // Expected when disposing - don't log as error
+                        
                         Console.WriteLine("🔌 Connection aborted during shutdown");
                         break;
                     }
@@ -156,7 +156,7 @@ namespace AirplaneFormApplication.WebSocket
             _isConnected = false;
         }
 
-        // Add this method to send a request for current states
+        
         public async Task RequestCurrentStates(int flightId)
         {
             if (!IsConnected) return;
@@ -224,7 +224,7 @@ namespace AirplaneFormApplication.WebSocket
                             }
                             break;
 
-                        // ✅ Add this new case
+
                         case "RequestCurrentStates":
                             if (dataElement.TryGetProperty("FlightId", out var requestFlightIdElement))
                             {

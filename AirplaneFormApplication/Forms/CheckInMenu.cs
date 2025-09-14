@@ -19,39 +19,36 @@ namespace AirplaneFormApplication
         private List<Passenger> filteredPassengers = new();
         private Passenger? selectedPassenger = null;
         private Panel? selectedPassengerPanel = null;
-        private WebSocketClient webSocketClient;
+        private WebSocketClient? webSocketClient;
         private Dictionary<int, Panel> passengerPanels = new();
+        private Dictionary<int, string> _passengerStates = new();
+        private bool _isAssigningPassenger = false;
 
-        public CheckInMenu()
+        public CheckInMenu(WebSocketClient? webSocketClient = null)
         {
             InitializeComponent();
             SearchTxtBox.TextChanged += SearchTxtBox_TextChanged;
             this.Load += CheckInMenu_Load;
             ConfirmBtn.Click += ConfirmBtn_Click;
-            
-            // Initialize WebSocket
+
+            this.webSocketClient = webSocketClient;
+
             InitializeWebSocket();
         }
 
         private async void InitializeWebSocket()
         {
-            webSocketClient = new WebSocketClient();
-            webSocketClient.PassengerListRefreshRequested += OnPassengerListRefreshRequested;
-            
-            
-            webSocketClient.PassengerSelectionChanged += OnPassengerSelectionChanged;
-            
-            
-            webSocketClient.SeatStatesRequested += OnStateRequested;
-            
-            await webSocketClient.ConnectAsync();
+            if (webSocketClient?.IsConnected == true)
+            {
+                webSocketClient.PassengerListRefreshRequested += OnPassengerListRefreshRequested;
+                webSocketClient.PassengerSelectionChanged += OnPassengerSelectionChanged;
+                webSocketClient.SeatStatesRequested += OnStateRequested;
+            }
         }
 
-        
         private void OnStateRequested(int requestedFlightId)
         {
-            
-            if (selectedPassenger != null)
+            if (selectedPassenger != null && webSocketClient?.IsConnected == true)
             {
                 _ = webSocketClient.SendPassengerSelectionNotification(selectedPassenger.Id, "selected");
             }
@@ -59,7 +56,6 @@ namespace AirplaneFormApplication
 
         private void OnPassengerSelectionChanged(int passengerId, string status)
         {
-            
             if (InvokeRequired)
             {
                 Invoke(new Action(() => UpdatePassengerPanelStatus(passengerId, status)));
@@ -72,29 +68,38 @@ namespace AirplaneFormApplication
 
         private void UpdatePassengerPanelStatus(int passengerId, string status)
         {
+            _passengerStates[passengerId] = status;
+
             if (passengerPanels.TryGetValue(passengerId, out var panel))
             {
-                switch (status)
-                {
-                    case "selected":
-                        panel.BackColor = Color.Yellow;
-                        panel.Enabled = false; 
-                        break;
-                    case "available":
-                        panel.BackColor = SystemColors.ActiveCaption;
-                        panel.Enabled = true;
-                        break;
-                    case "processing":
-                        panel.BackColor = Color.Orange;
-                        panel.Enabled = false;
-                        break;
-                }
+                ApplyPassengerPanelState(panel, status);
+            }
+        }
+
+        private void ApplyPassengerPanelState(Panel panel, string status)
+        {
+            switch (status)
+            {
+                case "selected":
+                    panel.BackColor = Color.Yellow;
+                    panel.Enabled = false;
+                    break;
+                case "available":
+                    panel.BackColor = SystemColors.ActiveCaption;
+                    panel.Enabled = true;
+                    break;
+                case "processing":
+                    panel.BackColor = Color.Orange;
+                    panel.Enabled = false;
+                    break;
             }
         }
 
         private async void OnPassengerListRefreshRequested(int flightId)
         {
-            
+            // Don't refresh if we're currently assigning a passenger
+            if (_isAssigningPassenger) return;
+
             if (InvokeRequired)
             {
                 Invoke(new Action(async () => await RefreshPassengerList()));
@@ -112,18 +117,15 @@ namespace AirplaneFormApplication
             filteredPassengers = allPassengers;
             PopulatePassengers(filteredPassengers);
 
-            
             _ = RequestCurrentPassengerStates();
         }
 
-        
         private async Task RequestCurrentPassengerStates()
         {
             try
             {
                 if (webSocketClient?.IsConnected == true)
                 {
-                    
                     await webSocketClient.RequestCurrentStates(0);
                 }
             }
@@ -143,8 +145,16 @@ namespace AirplaneFormApplication
         private void PopulatePassengers(List<Passenger> passengers)
         {
             PassengersContainerLayout.Controls.Clear();
-            passengerPanels.Clear();
-            
+
+            // Only clear panels for passengers that are no longer in the list
+            var currentPassengerIds = passengers.Select(p => p.Id).ToHashSet();
+            var panelsToRemove = passengerPanels.Keys.Where(id => !currentPassengerIds.Contains(id)).ToList();
+            foreach (var id in panelsToRemove)
+            {
+                passengerPanels.Remove(id);
+                _passengerStates.Remove(id);
+            }
+
             foreach (var passenger in passengers)
             {
                 var container = new Panel
@@ -152,7 +162,7 @@ namespace AirplaneFormApplication
                     Size = new Size(427, 53),
                     BackColor = SystemColors.ActiveCaption,
                     Margin = new Padding(3),
-                    Tag = passenger 
+                    Tag = passenger
                 };
 
                 var nameLabel = new Label
@@ -172,49 +182,63 @@ namespace AirplaneFormApplication
                 container.Controls.Add(nameLabel);
                 container.Controls.Add(passportLabel);
 
-                // Click event for selecting passenger
                 container.Click += async (s, e) => await SelectPassenger(passenger, container);
                 nameLabel.Click += async (s, e) => await SelectPassenger(passenger, container);
                 passportLabel.Click += async (s, e) => await SelectPassenger(passenger, container);
 
-                // Store panel reference for later updates
                 passengerPanels[passenger.Id] = container;
-                
+
+                // Apply existing state if available, otherwise default to available
+                if (_passengerStates.TryGetValue(passenger.Id, out var savedState))
+                {
+                    ApplyPassengerPanelState(container, savedState);
+                }
+                else if (selectedPassenger != null && selectedPassenger.Id == passenger.Id)
+                {
+                    // This passenger is currently selected by this client
+                    ApplyPassengerPanelState(container, "selected");
+                    _passengerStates[passenger.Id] = "selected";
+                }
+                else
+                {
+                    // Default state for new passengers
+                    ApplyPassengerPanelState(container, "available");
+                }
+
                 PassengersContainerLayout.Controls.Add(container);
             }
         }
 
         private async Task SelectPassenger(Passenger passenger, Panel panel)
         {
-            // Don't allow selection if panel is disabled (selected by another user)
             if (!panel.Enabled) return;
 
-            // Reset previous selection
             if (selectedPassengerPanel != null && selectedPassenger != null)
             {
                 selectedPassengerPanel.BackColor = SystemColors.ActiveCaption;
-                // Notify other clients that previous passenger is available
-                await webSocketClient.SendPassengerSelectionNotification(selectedPassenger.Id, "available");
+                if (webSocketClient?.IsConnected == true)
+                {
+                    await webSocketClient.SendPassengerSelectionNotification(selectedPassenger.Id, "available");
+                }
             }
 
-            // Set new selection
             selectedPassenger = passenger;
             selectedPassengerPanel = panel;
-            
-            // Highlight selected panel locally
+
             panel.BackColor = Color.LightGreen;
-            
-            // Show passenger info
+
             NameLbl.Text = passenger.Name;
             PasswordNumLbl.Text = passenger.PassportNumber;
 
-            // Notify other clients about selection (they'll see it as yellow and disabled)
-            await webSocketClient.SendPassengerSelectionNotification(passenger.Id, "selected");
+            if (webSocketClient?.IsConnected == true)
+            {
+                await webSocketClient.SendPassengerSelectionNotification(passenger.Id, "selected");
+            }
         }
 
         private void ShowPassengerInfo(Passenger passenger)
         {
-            selectedPassenger = passenger; 
+            selectedPassenger = passenger;
             NameLbl.Text = passenger.Name;
             PasswordNumLbl.Text = passenger.PassportNumber;
         }
@@ -239,13 +263,12 @@ namespace AirplaneFormApplication
 
             try
             {
-                
                 ConfirmBtn.Enabled = false;
+                _isAssigningPassenger = true;
 
                 var client = new ApiClient();
                 var flightSeats = await client.GetSeatsByFlightIdAsync(selectedPassenger.FlightId);
 
-                
                 var seatDialog = new SeatSelectionDialog(flightSeats, webSocketClient, selectedPassenger.FlightId);
 
                 if (seatDialog.ShowDialog() == DialogResult.OK && seatDialog.SelectedSeat != null)
@@ -259,17 +282,26 @@ namespace AirplaneFormApplication
             }
             finally
             {
-                ConfirmBtn.Enabled = true; 
+                _isAssigningPassenger = false;
+                ConfirmBtn.Enabled = true;
             }
         }
 
         private async Task AssignSeatToPassenger(Seat selectedSeat)
         {
-            var client = new ApiClient();
-            var assignRequest = new SeatAssignmentRequest 
+            var passengerToAssign = selectedPassenger;
+
+            if (passengerToAssign == null)
             {
-                PassengerId = selectedPassenger.Id,
-                FlightId = selectedPassenger.FlightId,
+                MessageBox.Show("No passenger selected for seat assignment.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var client = new ApiClient();
+            var assignRequest = new SeatAssignmentRequest
+            {
+                PassengerId = passengerToAssign.Id,
+                FlightId = passengerToAssign.FlightId,
                 SeatNumber = selectedSeat.SeatNumber
             };
 
@@ -277,45 +309,91 @@ namespace AirplaneFormApplication
 
             if (success)
             {
-                MessageBox.Show($"Seat {selectedSeat.SeatNumber} successfully assigned to {selectedPassenger.Name}!", 
-                               "Seat Assignment Successful", 
-                               MessageBoxButtons.OK, 
+                MessageBox.Show($"Seat {selectedSeat.SeatNumber} successfully assigned to {passengerToAssign.Name}!",
+                               "Seat Assignment Successful",
+                               MessageBoxButtons.OK,
                                MessageBoxIcon.Information);
-                
-                var printService = new PassengerTicketPrintService();
-                printService.PrintPassengerTicket(selectedPassenger);
 
-                await webSocketClient.SendPassengerListRefreshNotification(selectedPassenger.FlightId);
-                
+                var printService = new PassengerTicketPrintService();
+                printService.PrintPassengerTicket(passengerToAssign);
+
+                if (webSocketClient?.IsConnected == true)
+                {
+                    await webSocketClient.SendPassengerListRefreshNotification(passengerToAssign.FlightId);
+                }
+
                 await RefreshPassengerList();
+
+                if (webSocketClient?.IsConnected == true)
+                {
+                    await Task.Delay(200);
+                    await RequestCurrentPassengerStates();
+                }
             }
             else
             {
-                MessageBox.Show($"Failed to assign seat: {message}", 
-                               "Seat Assignment Failed", 
-                               MessageBoxButtons.OK, 
+                MessageBox.Show($"Failed to assign seat: {message}",
+                               "Seat Assignment Failed",
+                               MessageBoxButtons.OK,
                                MessageBoxIcon.Error);
-                
-                
-                await webSocketClient.SendPassengerSelectionNotification(selectedPassenger.Id, "available");
+
+                if (webSocketClient?.IsConnected == true)
+                {
+                    await webSocketClient.SendPassengerSelectionNotification(passengerToAssign.Id, "available");
+                }
             }
         }
 
         private async Task RefreshPassengerList()
         {
+            // Store current selection before refresh
+            var previousSelectedPassenger = selectedPassenger;
+            var previousSelectedPanel = selectedPassengerPanel;
+
             var allPassengersFromApi = await GetPassengersAsync();
             allPassengers = allPassengersFromApi.Where(p => p.SeatId == null && p.SeatNumber == null).ToList();
             filteredPassengers = allPassengers;
+
+            // Don't clear passenger states during refresh - preserve existing states
             PopulatePassengers(filteredPassengers);
-            
-            
-            selectedPassenger = null;
-            selectedPassengerPanel = null;
-            NameLbl.Text = "";
-            PasswordNumLbl.Text = "";
+
+            // Restore selection if the passenger is still in the list
+            if (previousSelectedPassenger != null &&
+                allPassengers.Any(p => p.Id == previousSelectedPassenger.Id))
+            {
+                selectedPassenger = previousSelectedPassenger;
+
+                // Find the new panel for this passenger
+                if (passengerPanels.TryGetValue(previousSelectedPassenger.Id, out var newPanel))
+                {
+                    selectedPassengerPanel = newPanel;
+                    newPanel.BackColor = Color.LightGreen;
+
+                    // Restore UI display
+                    NameLbl.Text = previousSelectedPassenger.Name;
+                    PasswordNumLbl.Text = previousSelectedPassenger.PassportNumber;
+
+                    // Update the state to ensure it's marked as selected
+                    _passengerStates[previousSelectedPassenger.Id] = "selected";
+                }
+            }
+            else
+            {
+                // Only clear if the passenger is no longer available
+                selectedPassenger = null;
+                selectedPassengerPanel = null;
+                NameLbl.Text = "";
+                PasswordNumLbl.Text = "";
+            }
+
+            // Request current states after populating to sync with other clients
+            if (webSocketClient?.IsConnected == true)
+            {
+                await Task.Delay(100); // Small delay to ensure UI is ready
+                await RequestCurrentPassengerStates();
+            }
         }
 
-        
         public void ReleaseSelectedPassenger()
         {
             try
@@ -324,7 +402,8 @@ namespace AirplaneFormApplication
                 {
                     webSocketClient.SendPassengerSelectionNotification(selectedPassenger.Id, "available").Wait(1000);
 
-                    
+                    _passengerStates.Remove(selectedPassenger.Id);
+
                     if (selectedPassengerPanel != null)
                     {
                         selectedPassengerPanel.BackColor = SystemColors.ActiveCaption;
@@ -343,7 +422,6 @@ namespace AirplaneFormApplication
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            
             if (e.CloseReason == CloseReason.UserClosing)
             {
                 var result = MessageBox.Show(
@@ -358,12 +436,10 @@ namespace AirplaneFormApplication
                 switch (result)
                 {
                     case DialogResult.Yes:
-
                         Application.Exit();
                         break;
                     case DialogResult.No:
-
-                        e.Cancel = true; 
+                        e.Cancel = true;
                         var mainMenu = Application.OpenForms.OfType<MainMenu>().FirstOrDefault();
                         if (mainMenu != null)
                         {
@@ -378,7 +454,6 @@ namespace AirplaneFormApplication
                 }
             }
 
-
             if (!e.Cancel)
             {
                 CleanupWebSocket();
@@ -390,21 +465,16 @@ namespace AirplaneFormApplication
         {
             try
             {
-
                 if (webSocketClient?.IsConnected == true && selectedPassenger != null)
                 {
                     webSocketClient.SendPassengerSelectionNotification(selectedPassenger.Id, "available").Wait(1000);
                 }
-
 
                 if (webSocketClient != null)
                 {
                     webSocketClient.PassengerListRefreshRequested -= OnPassengerListRefreshRequested;
                     webSocketClient.PassengerSelectionChanged -= OnPassengerSelectionChanged;
                     webSocketClient.SeatStatesRequested -= OnStateRequested;
-
-                    webSocketClient.DisconnectAsync().Wait(1000);
-                    webSocketClient.Dispose();
                 }
             }
             catch
@@ -412,7 +482,6 @@ namespace AirplaneFormApplication
 
             }
         }
-
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {

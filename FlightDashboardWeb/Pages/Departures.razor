@@ -80,11 +80,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Subscribe to SignalR events
+        
         SignalRService.FlightStatusChanged += OnFlightStatusChanged;
         SignalRService.ConnectionStatusChanged += OnConnectionStatusChanged;
 
-        // Start SignalR and load initial data
+        
         await SignalRService.StartAsync();
         await LoadFlights();
     }
@@ -112,7 +112,7 @@
     {
         await InvokeAsync(async () =>
         {
-            // Add to recent updates
+           
             recentUpdates.Add(new FlightUpdateInfo
             {
                 FlightId = flightId,
@@ -120,13 +120,13 @@
                 Timestamp = DateTime.Now
             });
 
-            // Mark as recently updated
+            
             lastUpdatedTimes[flightId] = DateTime.Now;
 
-            // Refresh flight data
+            
             await LoadFlights();
 
-            // Update UI
+            
             StateHasChanged();
         });
     }
@@ -154,9 +154,9 @@
         if (lastUpdatedTimes.ContainsKey(flightId) &&
             DateTime.Now - lastUpdatedTimes[flightId] < TimeSpan.FromSeconds(5))
         {
-            return "#c8e6c9"; // Light green for recently updated flights
+            return "#c8e6c9"; 
         }
-        return "#e6e8ee"; // Default background
+        return "#e6e8ee"; 
     }
 
     private string GetStatusStyle(FlightStatus status)
@@ -192,11 +192,10 @@
 
     public async ValueTask DisposeAsync()
     {
-        // Unsubscribe from events
+        
         SignalRService.FlightStatusChanged -= OnFlightStatusChanged;
         SignalRService.ConnectionStatusChanged -= OnConnectionStatusChanged;
 
-        // Note: Don't dispose SignalRService here since it's a singleton
-        // It will be disposed when the app shuts down
+
     }
 }

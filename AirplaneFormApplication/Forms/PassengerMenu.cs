@@ -135,7 +135,7 @@ namespace AirplaneFormApplication
             }
         }
 
-        // ✅ Add the same form closing pattern
+        
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)
@@ -178,7 +178,7 @@ namespace AirplaneFormApplication
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            // Any cleanup if needed
+            
             base.OnFormClosed(e);
         }
     }

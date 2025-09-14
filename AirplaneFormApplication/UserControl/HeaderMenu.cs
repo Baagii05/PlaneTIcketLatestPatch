@@ -36,8 +36,36 @@ namespace AirplaneFormApplication
                 form.Show();
             }
 
-            // ✅ Release selected passenger if navigating away from CheckInMenu
             if (currentForm != null && currentForm.GetType() != typeof(T))
+            {
+                if (currentForm is CheckInMenu checkInForm)
+                {
+                    checkInForm.ReleaseSelectedPassenger();
+                }
+                currentForm.Hide();
+            }
+        }
+
+        private void OpenOrActivateCheckInMenu()
+        {
+            var openForm = Application.OpenForms.OfType<CheckInMenu>().FirstOrDefault();
+            var currentForm = this.FindForm();
+
+            if (openForm != null)
+            {
+                if (!openForm.Visible)
+                    openForm.Show();
+                openForm.WindowState = FormWindowState.Normal;
+                openForm.BringToFront();
+                openForm.Activate();
+            }
+            else
+            {
+                var checkInForm = new CheckInMenu(MainMenu.SharedWebSocketClient);
+                checkInForm.Show();
+            }
+
+            if (currentForm != null && currentForm.GetType() != typeof(CheckInMenu))
             {
                 if (currentForm is CheckInMenu checkInForm)
                 {
@@ -54,7 +82,7 @@ namespace AirplaneFormApplication
 
         private void BtnCheckInMenu_Click(object sender, EventArgs e)
         {
-            OpenOrActivateForm<CheckInMenu>();
+            OpenOrActivateCheckInMenu();
         }
 
         private void BtnFlightMenu_Click(object sender, EventArgs e)

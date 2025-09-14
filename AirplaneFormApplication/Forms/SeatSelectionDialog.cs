@@ -23,7 +23,7 @@ namespace AirplaneFormApplication.Forms
             this.webSocketClient = webSocketClient;
             this.flightId = flightId;
 
-            // Only subscribe if webSocketClient is not null and connected
+            
             if (webSocketClient?.IsConnected == true)
             {
                 webSocketClient.SeatSelectionChanged += OnSeatSelectionChanged;
@@ -97,7 +97,7 @@ namespace AirplaneFormApplication.Forms
                         button.Enabled = false;
                         break;
                     case "available":
-                        // Only make available if it's not permanently taken
+                        
                         var seat = (Seat)button.Tag;
                         if (seat.IsAvailable)
                         {
@@ -148,7 +148,7 @@ namespace AirplaneFormApplication.Forms
                     seatButton.Enabled = false;
                 }
 
-                // Click event for seat selection (only for available seats)
+                
                 if (seat.IsAvailable)
                 {
                     seatButton.Click += (s, e) => SelectSeat(seatButton, seat); 
@@ -161,25 +161,25 @@ namespace AirplaneFormApplication.Forms
 
         private void SelectSeat(RoundedButton button, Seat seat)
         {
-            // Reset previous selection
+            
             if (selectedButton != null)
             {
                 selectedButton.BackColor = Color.MediumSlateBlue;
                 selectedButton.BackgroundColor = Color.MediumSlateBlue;
 
-                // Fire and forget WebSocket notification
+                
                 var prevSeat = (Seat)selectedButton.Tag;
                 _ = SendSeatNotificationSafe(prevSeat.SeatNumber, "available");
             }
 
-            // Highlight selected seat locally
+            
             button.BackColor = Color.Green;
             button.BackgroundColor = Color.Green;
 
             selectedButton = button;
             SelectedSeat = seat;
 
-            // Fire and forget WebSocket notification
+            
             _ = SendSeatNotificationSafe(seat.SeatNumber, "selected");
         }
 
